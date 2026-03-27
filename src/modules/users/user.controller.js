@@ -1,4 +1,5 @@
 import { UserService } from "./user.service.js";
+import { UserRole } from "../user_role/user_role.model.js";
 import pool from "../../config/db.js";
 
 export class UserController {
@@ -84,5 +85,16 @@ export class UserController {
                 message: err.message
             });
         }
+    }
+    static async getByRole(roleDescription) {
+        const role = await UserRole.getRoleByDescription(roleDescription);
+
+        if (!role) {
+            throw new Error("Role not found");
+        }
+
+        const users = await UserRole.getUsersByRoleId(role.id);
+
+        return users;
     }
 }

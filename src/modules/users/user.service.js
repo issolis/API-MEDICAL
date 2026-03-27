@@ -55,4 +55,18 @@ export class UserService {
 
         return user;
     }
+    static async getUsersByRoleId(roleId, client = pool) {
+        const result = await client.query(
+            `
+        SELECT u.id, u.fname, u.lname
+        FROM users u
+        INNER JOIN user_role ur ON u.id = ur.user_id
+        WHERE ur.role_id = $1
+        ORDER BY u.id
+        `,
+            [roleId]
+        );
+
+        return result.rows;
+    }
 }

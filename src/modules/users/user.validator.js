@@ -21,6 +21,9 @@ export class UserValidator {
 
     static validateCreate(req, res, next) {
         try {
+
+            console.log("hello");
+            console.log(req.body);
             RequestValidator.requireFields(req.body, [
                 "id",
                 "fName",
@@ -29,10 +32,13 @@ export class UserValidator {
                 "roles"
             ]);
 
+
+
             req.body.id = RequestValidator.validateInteger(
                 req.body.id,
                 "id"
             );
+
 
             req.body.roles = RequestValidator.validateIntegers(
                 req.body.roles
@@ -60,6 +66,28 @@ export class UserValidator {
                 success: false,
                 message: err.message
             });
+        }
+    }
+    static validateRoleParam(req, res, next) {
+        try {
+
+
+            const { role } = req.params;
+
+            if (!role || typeof role !== "string") {
+                throw new Error("Role must be a valid string");
+            }
+
+            req.params.role = role.trim().toLowerCase();
+
+            if (!req.params.role) {
+                throw new Error("Role cannot be empty");
+            }
+
+            next();
+
+        } catch (error) {
+            res.status(400).json({ error: error.message });
         }
     }
 }
