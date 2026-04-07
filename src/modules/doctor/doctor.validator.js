@@ -1,25 +1,55 @@
-import { DoctorService } from "./doctor.service.js";
 import { RequestValidator } from "../../shared/request.validator.js";
 
 export class DoctorValidator {
-    static async validateDoctorId(req, res, next) {
+    static validateId(req, res, next) {
         try {
             req.params.id = RequestValidator.validateInteger(
                 req.params.id,
-                "doctor id"
+                "id"
             );
 
-            const exists = await DoctorService.doctorExists(req.params.id);
+            next();
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                error: error.message
+            });
+        }
+    }
 
-            if (!exists) {
-                throw new Error("Doctor not found");
-            }
+    static validateUserId(req, res, next) {
+        try {
+            req.params.userId = RequestValidator.validateInteger(
+                req.params.userId,
+                "userId"
+            );
 
             next();
-        } catch (err) {
-            return res.status(400).json({
+        } catch (error) {
+            res.status(400).json({
                 success: false,
-                message: err.message
+                error: error.message
+            });
+        }
+    }
+
+    static validateUserIdAndSurgeryId(req, res, next) {
+        try {
+            req.params.userId = RequestValidator.validateInteger(
+                req.params.userId,
+                "userId"
+            );
+
+            req.params.surgeryId = RequestValidator.validateInteger(
+                req.params.surgeryId,
+                "surgeryId"
+            );
+
+            next();
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                error: error.message
             });
         }
     }

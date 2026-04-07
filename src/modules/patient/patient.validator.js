@@ -1,3 +1,5 @@
+import {RequestValidator} from "../../shared/request.validator.js"
+
 export class PatientValidator {
 
     static validateCreate(req, res, next) {
@@ -25,4 +27,35 @@ export class PatientValidator {
             res.status(400).json({ error: error.message });
         }
     }
+    static validateUserId(req, res, next) {
+        try {
+            req.params.userId = RequestValidator.validateInteger(
+                req.params.userId,
+                "userId"
+            );
+
+            next();
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    static validateUserIdAndSurgeryId(req, res, next) {
+        try {
+            req.params.userId = RequestValidator.validateInteger(
+                req.params.userId,
+                "userId"
+            );
+
+            req.params.surgeryId = RequestValidator.validateInteger(
+                req.params.surgeryId,
+                "surgeryId"
+            );
+
+            next();
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }

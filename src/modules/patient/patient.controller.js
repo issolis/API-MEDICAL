@@ -30,4 +30,41 @@ export class PatientController {
             client.release();
         }
     }
+    static async getSurgeries(req, res, next) {
+        try {
+            const userId = req.params.userId;
+
+            const surgeries = await PatientService.getSurgeriesByPatientId(userId);
+
+            res.status(200).json({
+                success: true,
+                count: surgeries.length,
+                data: surgeries
+            });
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                error: error.message
+            });
+        }
+    }
+
+    static async getSurgeryById(req, res, next) {
+        try {
+            const userId = req.params.userId;
+            const surgeryId = req.params.surgeryId;
+
+            const surgery = await PatientService.getPatientSurgeryById(userId, surgeryId);
+
+            res.status(200).json({
+                success: true,
+                data: surgery
+            });
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                error: error.message
+            });
+        }
+    }
 }

@@ -23,46 +23,6 @@ export class Surgery {
         return result.rows;
     }
 
-    // ── Obtener una cirugía por ID (con equipo médico) ──
-    static async getById(id, client = pool) {
-        // Datos principales de la cirugía
-        const surgeryResult = await client.query(`
-            SELECT
-                s.id,
-                s.surgery_date,
-                s.type_id,
-                st.description  AS type_description,
-                s.state_id,
-                ss.description  AS state_description
-            FROM surgery s
-            JOIN surgery_type  st ON s.type_id  = st.id
-            JOIN surgery_state ss ON s.state_id = ss.id
-            WHERE s.id = $1
-        `, [id]);
-
-        if (surgeryResult.rows.length === 0) return null;
-
-        // Equipo médico asignado a la cirugía
-        const teamResult = await client.query(`
-            SELECT
-                su.user_id,
-                u.fName,
-                u.lName,
-                su.surgery_role_id,
-                sr.description AS role_description
-            FROM surgery_users su
-            JOIN users        u  ON su.user_id        = u.id
-            JOIN surgery_role sr ON su.surgery_role_id = sr.id
-            WHERE su.surgery_id = $1
-            ORDER BY su.surgery_role_id
-        `, [id]);
-
-        return {
-            ...surgeryResult.rows[0],
-            team: teamResult.rows
-        };
-    }
-
     // ── Obtener cirugías por estado ──
     static async getByState(stateId, client = pool) {
         const result = await client.query(`
@@ -133,24 +93,117 @@ export class Surgery {
     }
 
 
-    static async getByUserId(userId, client = pool) {
-        const result = await client.query(`
-            SELECT
-                s.id,
-                s.surgery_date,
-                st.description  AS type_description,
-                ss.description  AS state_description,
-                sr.description  AS user_role_in_surgery
-            FROM surgery_users su
-            JOIN surgery       s  ON su.surgery_id      = s.id
-            JOIN surgery_type  st ON s.type_id          = st.id
-            JOIN surgery_state ss ON s.state_id         = ss.id
-            JOIN surgery_role  sr ON su.surgery_role_id  = sr.id
-            WHERE su.user_id = $1
-            ORDER BY s.surgery_date DESC
-        `, [userId]);
+    static async getByUserId(userId, { role = null, excludeRole = null } = {}, client = pool) {
+        if (role && excludeRole) {
+            throw new Error("role and excludeRole cannot be used together");
+        }
+
+        let query = `
+        SELECT
+            s.id,
+            s.surgery_date,
+            st.description AS type_description,
+            ss.description AS state_description,
+            sr.description AS user_role_in_surgery
+        FROM surgery_users su
+        JOIN surgery s
+            ON su.surgery_id = s.id
+        JOIN surgery_type st
+            ON s.type_id = st.id
+        JOIN surgery_state ss
+            ON s.state_id = ss.id
+        JOIN surgery_role sr
+            ON su.surgery_role_id = sr.id
+        WHERE su.user_id = $1
+    `;
+
+        const params = [userId];
+        let index = 2;
+
+        if (role) {
+            query += ` AND LOWER(sr.description) = LOWER($${index})`;
+            params.push(role);
+            index++;
+        }
+
+        if (excludeRole) {
+            query += ` AND LOWER(sr.description) <> LOWER($${index})`;
+            params.push(excludeRole);
+            index++;
+        }
+        
+
+        query += ` ORDER BY s.surgery_date DESC`;
+
+        const result = await client.query(query, params);
         return result.rows;
     }
+
+    static async getById(id, { role = null, excludeRole = null } = {}, client = pool) {
+        if (role && excludeRole) {
+            throw new Error("role and excludeRole cannot be used together");
+        }
+
+        const surgeryResult = await client.query(`
+        SELECT
+            s.id,
+            s.surgery_date,
+            s.type_id,
+            st.description AS type_description,
+            s.state_id,
+            ss.description AS state_description
+        FROM surgery s
+        JOIN surgery_type st
+            ON s.type_id = st.id
+        JOIN surgery_state ss
+            ON s.state_id = ss.id
+        WHERE s.id = $1
+    `, [id]);
+
+        if (surgeryResult.rows.length === 0) {
+            return null;
+        }
+
+        let teamQuery = `
+        SELECT
+            su.user_id,
+            u.fName,
+            u.lName,
+            su.surgery_role_id,
+            sr.description AS role_description
+        FROM surgery_users su
+        JOIN users u
+            ON su.user_id = u.id
+        JOIN surgery_role sr
+            ON su.surgery_role_id = sr.id
+        WHERE su.surgery_id = $1
+    `;
+
+        const params = [id];
+        let index = 2;
+
+        if (role) {
+            teamQuery += ` AND LOWER(sr.description) = LOWER($${index})`;
+            params.push(role);
+            index++;
+        }
+
+        if (excludeRole) {
+            teamQuery += ` AND LOWER(sr.description) <> LOWER($${index})`;
+            params.push(excludeRole);
+            index++;
+        }
+
+        teamQuery += ` ORDER BY su.surgery_role_id`;
+
+        const teamResult = await client.query(teamQuery, params);
+
+        return {
+            ...surgeryResult.rows[0],
+            team: teamResult.rows
+        };
+    }
+
 
     ///[NEW] EDITEB BY issolis
     static async getRequiredSurgeryRoleIds(client = pool) {
