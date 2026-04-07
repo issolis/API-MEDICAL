@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { user } from "../users/user.model.js";
-import { user_role } from "../user_role/user_role.model.js";
+import { UserModel as user } from "../users/user.model.js";
+import { UserRole as user_role } from "../user_role/user_role.model.js";
 
 export class PatientService {
 

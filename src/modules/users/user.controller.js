@@ -86,15 +86,29 @@ export class UserController {
             });
         }
     }
-    static async getByRole(roleDescription) {
-        const role = await UserRole.getRoleByDescription(roleDescription);
+    static async getByRole(req, res) {
+        try {
+            const roleId = parseInt(req.params.role, 10);
 
-        if (!role) {
-            throw new Error("Role not found");
+            if (Number.isNaN(roleId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid role id"
+                });
+            }
+
+            const users = await UserService.getUsersByRoleId(roleId);
+
+            res.status(200).json({
+                success: true,
+                count: users.length,
+                data: users
+            });
+        } catch (err) {
+            res.status(500).json({
+                success: false,
+                message: err.message
+            });
         }
-
-        const users = await UserRole.getUsersByRoleId(role.id);
-
-        return users;
     }
 }

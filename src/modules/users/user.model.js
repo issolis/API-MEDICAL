@@ -13,7 +13,20 @@ export class UserModel {
 
     static async getAllUsers(client = pool) {
         const result = await client.query(
-            'SELECT id, fName, lName FROM users'
+            `
+            SELECT 
+                u.id,
+                u.fName, 
+                u.lName,
+                ARRAY_AGG(DISTINCT r.description ORDER BY r.description) AS roles
+            FROM users u
+            INNER JOIN user_role ur
+                ON ur.user_id = u.id
+            INNER JOIN role r
+                ON r.id = ur.role_id
+            GROUP BY u.id, u.fName, u.lName
+            ORDER BY u.id;
+            `
         );
 
         return result.rows;
@@ -38,7 +51,7 @@ export class UserModel {
 
         return result.rows[0];
     }
-    
+
     static async getUsersByRoleId(roleId, client = pool) {
         const result = await client.query(
             `
@@ -52,5 +65,33 @@ export class UserModel {
         );
 
         return result.rows;
+    }
+
+    static async existsById(id, client = pool) {
+        const result = await client.query(`
+            SELECT 1
+            FROM users
+            WHERE id = $1
+            LIMIT 1
+        `, [id]);
+
+        return result.rowCount > 0;
+    }
+
+    static async hasRole(user_id, roleDescription, client = pool) {
+        const result = await client.query(
+            `
+        SELECT 1
+        FROM user_role ur
+        INNER JOIN role r
+            ON r.id = ur.role_id
+        WHERE ur.user_id = $1
+          AND r.description = $2
+        LIMIT 1
+        `,
+            [user_id, roleDescription]
+        );
+
+        return result.rowCount > 0;
     }
 }

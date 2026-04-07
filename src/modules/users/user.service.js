@@ -69,4 +69,12 @@ export class UserService {
 
         return result.rows;
     }
+
+    static async existsById(id, client) {
+        return await UserModel.existsById(id, client);
+    }
+
+    static async hasRole(user_id, roleDescription, client) {
+        return await UserModel.hasRole(user_id, roleDescription, client);
+    }
 }

@@ -10,6 +10,7 @@ const router = Router();
 
 router.get(
     "/",
+    requireRole(1),
     UserController.getAll
 );
 
@@ -40,6 +41,7 @@ router.delete(
 
 router.get(
     "/by-role/:role",
+    requireRole(1),
     UserController.getByRole
 );
 

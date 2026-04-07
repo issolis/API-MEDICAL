@@ -3,12 +3,19 @@ import jwt from "jsonwebtoken";
 export function authenticate(req, res, next) {
 
     const authHeader = req.headers["authorization"];
+    const cookieToken = req.cookies?.authToken;
 
-    if (!authHeader) {
-        return res.status(401).json({ error: "Token required" });
+    let token = null;
+
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+        token = authHeader.split(" ")[1];
+    } else if (cookieToken) {
+        token = cookieToken;
     }
 
-    const token = authHeader.split(" ")[1];
+    if (!token) {
+        return res.status(401).json({ error: "Token required" });
+    }
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
