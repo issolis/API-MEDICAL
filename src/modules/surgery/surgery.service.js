@@ -39,7 +39,13 @@ export class SurgeryService {
     }
 
     static async getByUserId(userId) {
-        return await Surgery.getByUserId(userId);
+        const surgeries = await Surgery.getByUserId(userId);
+
+        if (!surgeries || surgeries.length === 0) {
+            throw new Error("No surgeries found for this user");
+        }
+
+        return surgeries;
     }
 
     static async createFull(data, client) {
@@ -66,7 +72,7 @@ export class SurgeryService {
         if (!patientExists) {
             throw new Error("Patient user not found");
         }
-        
+
         const surgeonExists = await UserService.existsById(surgeon_id, client);
         if (!surgeonExists) {
             throw new Error("Surgeon user not found");

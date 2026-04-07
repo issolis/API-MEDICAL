@@ -1,21 +1,33 @@
 import { Router } from "express";
 import { DoctorController } from "./doctor.controller.js";
 import { DoctorValidator } from "./doctor.validator.js";
-import {requireRole, requireSelfOrAdmin } from "../../shared/auth.middleware.js";
+import { requireSelfOrAdmin } from "../../shared/auth.middleware.js";
 
 const router = Router();
 
 router.get(
     "/",
-    requireRole(1),
-    DoctorController.getAllDoctors
+    DoctorController.getAll
 );
 
 router.get(
     "/:id/stats",
-    requireSelfOrAdmin("id"), 
-    DoctorValidator.validateDoctorId,
-    DoctorController.getDoctorDashboardStats
+    DoctorValidator.validateId,
+    DoctorController.getDashboardStats
+);
+
+router.get(
+    "/:userId/surgeries",
+    requireSelfOrAdmin("userId"),
+    DoctorValidator.validateUserId,
+    DoctorController.getSurgeries
+);
+
+router.get(
+    "/:userId/surgeries/:surgeryId",
+    requireSelfOrAdmin("userId"),
+    DoctorValidator.validateUserIdAndSurgeryId,
+    DoctorController.getSurgeryById
 );
 
 export default router;

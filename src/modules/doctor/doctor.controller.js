@@ -1,37 +1,77 @@
 import { DoctorService } from "./doctor.service.js";
 
 export class DoctorController {
-    static async getAllDoctors(req, res) {
+    static async getAll(req, res) {
         try {
-            console.log("hello")
             const doctors = await DoctorService.getAllDoctors();
 
-            return res.status(200).json({
+            res.status(200).json({
                 success: true,
+                count: doctors.length,
                 data: doctors
             });
-        } catch (err) {
-            return res.status(400).json({
+        } catch (error) {
+            res.status(400).json({
                 success: false,
-                message: err.message
+                error: error.message
             });
         }
     }
 
-    static async getDoctorDashboardStats(req, res) {
+    static async getDashboardStats(req, res) {
         try {
             const { id } = req.params;
 
             const stats = await DoctorService.getDoctorDashboardStats(id);
 
-            return res.status(200).json({
+            res.status(200).json({
                 success: true,
                 data: stats
             });
-        } catch (err) {
-            return res.status(400).json({
+        } catch (error) {
+            res.status(400).json({
                 success: false,
-                message: err.message
+                error: error.message
+            });
+        }
+    }
+
+    static async getSurgeries(req, res) {
+        try {
+            const { userId } = req.params;
+
+            const surgeries = await DoctorService.getByUserId(userId);
+
+            res.status(200).json({
+                success: true,
+                count: surgeries.length,
+                data: surgeries
+            });
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                error: error.message
+            });
+        }
+    }
+
+    static async getSurgeryById(req, res) {
+        try {
+            const { userId, surgeryId } = req.params;
+
+            const surgery = await DoctorService.getSurgeryById(
+                userId,
+                surgeryId
+            );
+
+            res.status(200).json({
+                success: true,
+                data: surgery
+            });
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                error: error.message
             });
         }
     }

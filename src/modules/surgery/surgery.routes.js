@@ -15,28 +15,28 @@ router.get(
 
 router.get(
     "/:id",
-    requireRole(1),
+    requireRole(1,2,3),
     SurgeryValidator.validateId,
     SurgeryController.getById
 );
 
 router.get(
     "/state/:stateId",
-    requireRole(1),
+    requireRole(1,2,3),
     SurgeryValidator.validateStateId,
     SurgeryController.getByState
 );
 
 router.get(
     "/type/:typeId",
-    requireRole(1),
+    requireRole(1,2,3),
     SurgeryValidator.validateTypeId,
     SurgeryController.getByType
 );
 
 router.get(
     "/user/:userId",
-    requireRole(1),
+    requireSelfOrAdmin("userId"),
     SurgeryValidator.validateUserId,
     SurgeryController.getByUserId
 );
@@ -50,7 +50,7 @@ router.post(
 
 router.put(
     "/:id",
-    requireRole(1),
+    requireRole(1,2,3),
     SurgeryValidator.validateId,
     SurgeryValidator.validateBody,
     SurgeryController.update
@@ -58,7 +58,7 @@ router.put(
 
 router.delete(
     "/:id",
-    requireRole(1),
+    requireRole(1,2,3),
     SurgeryValidator.validateId,
     SurgeryController.delete
 );
