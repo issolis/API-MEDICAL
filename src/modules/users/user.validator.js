@@ -22,8 +22,6 @@ export class UserValidator {
     static validateCreate(req, res, next) {
         try {
 
-            console.log("hello");
-            console.log(req.body);
             RequestValidator.requireFields(req.body, [
                 "id",
                 "fName",

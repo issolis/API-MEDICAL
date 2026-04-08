@@ -1,7 +1,7 @@
 import pool from "../../config/db.js";
 import { Surgery } from "../surgery/surgery.model.js";
 
-export  class Patient {
+export class Patient {
     static async isPatient(userId, client = pool) {
         const result = await client.query(`
             SELECT 1
@@ -47,5 +47,25 @@ export  class Patient {
         }
 
         return surgery;
+    }
+
+    static async getAll(client = pool) {
+        const result = await client.query(
+            `
+            SELECT 
+                u.id,
+                u.fname,
+                u.lname
+            FROM users u
+            INNER JOIN user_role ur
+                ON ur.user_id = u.id
+            INNER JOIN role r
+                ON r.id = ur.role_id
+            WHERE r.description = 'patient'
+            ORDER BY u.id
+            `
+        );
+
+        return result.rows;
     }
 }

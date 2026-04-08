@@ -62,16 +62,18 @@ export class Surgery {
     }
 
     // ── Crear una cirugía ──
-    static async create({ surgery_date, type_id, state_id }, client = pool) {
-        console.log("hh");
-        const result = await client.query(`
-            INSERT INTO surgery (surgery_date, type_id, state_id)
-            VALUES ($1, $2, $3)
-            RETURNING id, surgery_date, type_id, state_id
-        `, [surgery_date, type_id, state_id]);
+    static async create({ surgery_date, type_id, state_id, operating_room_id }, client = pool) {
+        const result = await client.query(
+            `
+        INSERT INTO surgery (surgery_date, type_id, state_id, operating_room_id)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, surgery_date, type_id, state_id, operating_room_id
+        `,
+            [surgery_date, type_id, state_id, operating_room_id]
+        );
+
         return result.rows[0];
     }
-
     // ── Actualizar una cirugía ──
     static async update(id, { surgery_date, type_id, state_id }, client = pool) {
         const result = await client.query(`
@@ -131,7 +133,7 @@ export class Surgery {
             params.push(excludeRole);
             index++;
         }
-        
+
 
         query += ` ORDER BY s.surgery_date DESC`;
 
@@ -229,7 +231,6 @@ export class Surgery {
     }
 
     static async assignRequiredUsersToSurgery(surgeryId, data, roleIds, client = pool) {
-        console.log("hh");
 
         await SurgeryUsers.create(
             {
@@ -271,16 +272,16 @@ export class Surgery {
     }
 
     static async createFullSurgery(data, client = pool) {
-
         const surgery = await this.create(
             {
                 surgery_date: data.surgery_date,
                 type_id: data.type_id,
-                state_id: data.state_id
+                state_id: data.state_id,
+                operating_room_id: data.operating_room_id
             },
             client
         );
-        console.log("hh");
+
         const roleIds = await this.getRequiredSurgeryRoleIds(client);
 
         await this.assignRequiredUsersToSurgery(
@@ -289,32 +290,108 @@ export class Surgery {
             roleIds,
             client
         );
-        console.log("hh");
+
         return surgery;
     }
 
     static async getSurgeriesByDayAndUserId(id, date, client = pool) {
         const result = await client.query(
             `
-            SELECT
-                s.id,
-                s.surgery_date,
-                st.description AS type,
-                ss.description AS state
-            FROM surgery s
-            INNER JOIN surgery_users su
-                ON su.surgery_id = s.id
-            INNER JOIN surgery_type st
-                ON st.id = s.type_id
-            INNER JOIN surgery_state ss
-                ON ss.id = s.state_id
-            WHERE su.user_id = $1
-              AND s.surgery_date::date = $2
-            ORDER BY s.surgery_date
-            `,
+        SELECT
+            s.id,
+            s.surgery_date,
+            s.operating_room_id,
+            st.description AS type,
+            ss.description AS state
+        FROM surgery s
+        INNER JOIN surgery_users su
+            ON su.surgery_id = s.id
+        INNER JOIN surgery_type st
+            ON st.id = s.type_id
+        INNER JOIN surgery_state ss
+            ON ss.id = s.state_id
+        WHERE su.user_id = $1
+          AND s.surgery_date::date = $2
+        ORDER BY s.surgery_date
+        `,
             [id, date]
         );
 
         return result.rows;
+    }
+
+    static async existsByDateAndOperatingRoom(surgery_date, operating_room_id, client = pool) {
+        const result = await client.query(
+            `
+        SELECT 1
+        FROM surgery
+        WHERE surgery_date = $1
+          AND operating_room_id = $2
+        LIMIT 1
+        `,
+            [surgery_date, operating_room_id]
+        );
+
+        return result.rowCount > 0;
+    }
+
+    static async usersHaveSurgeryAtDate(userIds, surgery_date, client = pool) {
+        const result = await client.query(
+            `
+        SELECT DISTINCT su.user_id
+        FROM surgery_users su
+        INNER JOIN surgery s
+            ON s.id = su.surgery_id
+        WHERE su.user_id = ANY($1)
+          AND s.surgery_date = $2
+        `,
+            [userIds, surgery_date]
+        );
+
+        return result.rows.map(row => row.user_id);
+    }
+
+    static hasDuplicateUserIds({ patient_id, surgeon_id, anesthesiologist_id, assistant_ids }) {
+        const userIds = [
+            patient_id,
+            surgeon_id,
+            anesthesiologist_id,
+            ...assistant_ids
+        ];
+
+        const uniqueUserIds = new Set(userIds);
+
+        return uniqueUserIds.size !== userIds.length;
+    }
+
+    static async isOperatingRoomOccupiedAtDate(surgery_date, operating_room_id, client = pool) {
+        const result = await client.query(
+            `
+        SELECT 1
+        FROM surgery
+        WHERE surgery_date = $1
+          AND operating_room_id = $2
+        LIMIT 1
+        `,
+            [surgery_date, operating_room_id]
+        );
+
+        return result.rowCount > 0;
+    }
+
+    static async getUsersWithSurgeryAtDate(userIds, surgery_date, client = pool) {
+        const result = await client.query(
+            `
+        SELECT DISTINCT su.user_id
+        FROM surgery_users su
+        INNER JOIN surgery s
+            ON s.id = su.surgery_id
+        WHERE su.user_id = ANY($1)
+          AND s.surgery_date = $2
+        `,
+            [userIds, surgery_date]
+        );
+
+        return result.rows.map(row => row.user_id);
     }
 }   

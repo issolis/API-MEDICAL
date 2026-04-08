@@ -93,14 +93,12 @@ export class SurgeryUsers {
 
     static async create({ surgery_id, user_id, surgery_role_id }, client = pool) {
 
-        console.log("pasó"); 
         const result = await client.query(`
             INSERT INTO surgery_users (surgery_id, user_id, surgery_role_id)
             VALUES ($1, $2, $3)
             RETURNING surgery_id, user_id, surgery_role_id
         `, [surgery_id, user_id, surgery_role_id]);
 
-        console.log("pasó"); 
         return result.rows[0];
     }
 

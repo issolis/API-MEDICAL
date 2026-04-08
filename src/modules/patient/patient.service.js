@@ -33,4 +33,8 @@ export class PatientService {
         return await Patient.getSurgeryById(userId, surgeryId);
     }
 
+    static async getAll() {
+        return await Patient.getAll();
+    }
+
 }

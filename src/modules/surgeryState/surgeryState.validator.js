@@ -1,5 +1,6 @@
-export class SurgeryTypeValidator {
+export class SurgeryStateValidator {
 
+    // Valida que el parámetro :id sea un entero positivo
     static validateId(req, res, next) {
         const id = Number(req.params.id);
         if (!Number.isInteger(id) || id <= 0) {
@@ -11,6 +12,7 @@ export class SurgeryTypeValidator {
         next();
     }
 
+    // Valida que el parámetro :description sea un string válido
     static validateDescription(req, res, next) {
         const { description } = req.params;
         if (!description || typeof description !== "string") {
@@ -30,6 +32,7 @@ export class SurgeryTypeValidator {
         next();
     }
 
+    // Valida el body para crear o actualizar (POST / PUT)
     static validateBody(req, res, next) {
         const { description } = req.body;
         if (!description || typeof description !== "string") {

@@ -144,8 +144,6 @@ export class SurgeryController {
         try {
             const { id, date } = req.params;
 
-            console.log(id, date);
-
             const surgeries = await SurgeryService.getSurgeriesByDayAndUserId(
                 Number(id),
                 date

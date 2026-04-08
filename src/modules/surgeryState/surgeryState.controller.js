@@ -1,4 +1,4 @@
-import { SurgeryStateService } from "./surgery-state.service.js";
+import { SurgeryStateService } from "./surgeryState.service.js";
 
 export class SurgeryStateController {
 

@@ -50,24 +50,37 @@ export class SurgeryService {
 
     static async createFull(data, client) {
         const {
+            surgery_date,
             type_id,
             state_id,
+            operating_room_id,
             patient_id,
             surgeon_id,
             anesthesiologist_id,
             assistant_ids
         } = data;
 
+        const hasDuplicates = Surgery.hasDuplicateUserIds({
+            patient_id,
+            surgeon_id,
+            anesthesiologist_id,
+            assistant_ids
+        });
+
+        if (hasDuplicates) {
+            throw new Error("A user cannot be assigned more than once in the same surgery");
+        }
+
         const typeExists = await SurgeryTypeService.existsById(type_id, client);
         if (!typeExists) {
             throw new Error("Surgery type not found");
         }
 
-
         const stateExists = await SurgeryStateService.existsById(state_id, client);
         if (!stateExists) {
             throw new Error("Surgery state not found");
         }
+
         const patientExists = await UserService.existsById(patient_id, client);
         if (!patientExists) {
             throw new Error("Patient user not found");
@@ -85,6 +98,7 @@ export class SurgeryService {
         if (!anesthesiologistExists) {
             throw new Error("Anesthesiologist user not found");
         }
+
         for (const assistantId of assistant_ids) {
             const assistantExists = await UserService.existsById(assistantId, client);
 
@@ -133,10 +147,32 @@ export class SurgeryService {
                 );
             }
         }
-        console.log("hh");
+
+        const roomOccupied = await Surgery.isOperatingRoomOccupiedAtDate(
+            surgery_date,
+            operating_room_id,
+            client
+        );
+
+        if (roomOccupied) {
+            throw new Error("Operating room is already occupied at that date and time");
+        }
+
+        const conflictingUsers = await Surgery.getUsersWithSurgeryAtDate(
+            [patient_id, surgeon_id, anesthesiologist_id, ...assistant_ids],
+            surgery_date,
+            client
+        );
+
+        if (conflictingUsers.length > 0) {
+            throw new Error(
+                `The following users already have a surgery at that date and time: ${conflictingUsers.join(", ")}`
+            );
+        }
+
         return await Surgery.createFullSurgery(data, client);
     }
-
+    
     static async update(id, { surgery_date, type_id, state_id }) {
         const surgery = await Surgery.getById(id);
         if (!surgery) throw new Error("Surgery not found");

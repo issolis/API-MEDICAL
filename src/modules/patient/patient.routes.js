@@ -5,6 +5,8 @@ import { requireRole, requireSelfOrAdmin } from "../../shared/auth.middleware.js
 
 const router = Router();
 
+router.get("/", PatientController.getAll);
+
 router.post(
     "/",
     requireRole(1, 2, 3),

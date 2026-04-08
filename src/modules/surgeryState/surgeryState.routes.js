@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { SurgeryStateController } from "./surgery-state.controller.js";
-import { SurgeryStateValidator } from "./surgery-state.validator.js";
+import { SurgeryStateController } from "./surgeryState.controller.js";
+import { SurgeryStateValidator } from "./surgeryState.validator.js";
 import { requireRole } from "../../shared/auth.middleware.js";
 
 const router = Router();
@@ -8,14 +8,14 @@ const router = Router();
 // GET /api/surgery-state         listar todos los estados
 router.get(
     "/",
-    requireRole(1),
+    requireRole(1,2,3,4),
     SurgeryStateController.getAll
 );
 
 // GET /api/surgery-state/:id     obtener por ID
 router.get(
     "/:id",
-    requireRole(1),
+    requireRole(1,2,3,4),
     SurgeryStateValidator.validateId,
     SurgeryStateController.getById
 );
@@ -23,7 +23,7 @@ router.get(
 // GET /api/surgery-state/description/:description   obtener por descripción
 router.get(
     "/description/:description",
-    requireRole(1),
+    requireRole(1,2,3,4),
     SurgeryStateValidator.validateDescription,
     SurgeryStateController.getByDescription
 );

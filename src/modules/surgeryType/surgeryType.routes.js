@@ -1,26 +1,26 @@
 import { Router } from "express";
-import { SurgeryTypeController } from "./surgery-type.controller.js";
-import { SurgeryTypeValidator } from "./surgery-type.validator.js";
+import { SurgeryTypeController } from "./surgeryType.controller.js";
+import { SurgeryTypeValidator } from "./surgeryType.validator.js";
 import { requireRole } from "../../shared/auth.middleware.js";
 
 const router = Router();
 
 router.get(
     "/",
-    requireRole(1),
+    requireRole(1,2,3,4),
     SurgeryTypeController.getAll
 );
 
 router.get(
     "/:id",
-    requireRole(1),
+    requireRole(1,2,3,4),
     SurgeryTypeValidator.validateId,
     SurgeryTypeController.getById
 );
 
 router.get(
     "/description/:description",
-    requireRole(1),
+    requireRole(1,2,3,4),
     SurgeryTypeValidator.validateDescription,
     SurgeryTypeController.getByDescription
 );

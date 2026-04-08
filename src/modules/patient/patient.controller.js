@@ -30,6 +30,7 @@ export class PatientController {
             client.release();
         }
     }
+
     static async getSurgeries(req, res, next) {
         try {
             const userId = req.params.userId;
@@ -64,6 +65,23 @@ export class PatientController {
             res.status(400).json({
                 success: false,
                 error: error.message
+            });
+        }
+    }
+
+    static async getAll(req, res) {
+        try {
+            const patients = await PatientService.getAll();
+
+            res.json({
+                success: true,
+                count: patients.length,
+                data: patients
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message
             });
         }
     }

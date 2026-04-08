@@ -31,11 +31,9 @@ export function authenticate(req, res, next) {
 
 export function requireRole(allowedRoles) {
     return (req, res, next) => {
-
         if (!req.user || !req.user.roles) {
             return res.status(403).json({ error: "No roles found" });
         }
-        console.log(req.body);
 
         const rolesArray = Array.isArray(allowedRoles)
             ? allowedRoles
@@ -48,9 +46,6 @@ export function requireRole(allowedRoles) {
         if (!hasRole) {
             return res.status(403).json({ error: "Forbidden" });
         }
-
-
-        console.log(hasRole); 
 
         next();
     };
